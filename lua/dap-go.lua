@@ -104,6 +104,14 @@ local function setup_go_configuration(dap, configs)
   local common_debug_configs = {
     {
       type = "go",
+      name = "Debug Project",
+      request = "launch",
+      program = "${workspaceFolder}",
+      buildFlags = configs.delve.build_flags,
+      outputMode = configs.delve.output_mode,
+    },
+    {
+      type = "go",
       name = "Debug",
       request = "launch",
       program = "${file}",
