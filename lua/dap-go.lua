@@ -32,6 +32,26 @@ local function load_module(module_name)
   return module
 end
 
+local function select_folder()
+  return coroutine.create(function(dap_run_co)
+    local cwd = vim.fn.getcwd()
+    local folders = vim.fn.globpath(cwd, "*/", false, true)
+    table.insert(folders, 1, cwd) -- Add current dir
+    vim.ui.select(folders, {
+      prompt = "Select folder to run:",
+      format_item = function(item)
+        return vim.fn.fnamemodify(item, ":~:.")
+      end,
+    }, function(choice)
+      if choice then
+        coroutine.resume(dap_run_co, choice)
+      else
+        coroutine.resume(dap_run_co, nil)
+      end
+    end)
+  end)
+end
+
 local function get_arguments()
   return coroutine.create(function(dap_run_co)
     local args = {}
@@ -106,7 +126,8 @@ local function setup_go_configuration(dap, configs)
       type = "go",
       name = "Debug Project",
       request = "launch",
-      program = "${workspaceFolder}",
+      program = select_folder,
+      args = get_arguments,
       buildFlags = configs.delve.build_flags,
       outputMode = configs.delve.output_mode,
     },
